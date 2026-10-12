@@ -381,10 +381,9 @@ p {
   display: block;
   margin-top: 6px;
   font-family: var(--font-body);
-  font-size: 0.78rem;
+  font-size: 0.95rem;
   font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+  line-height: 1.45;
   color: var(--color-accent);
 }
 
