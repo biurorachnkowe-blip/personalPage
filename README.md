@@ -24,13 +24,58 @@ python -m http.server 8000
 
 i wejść na `http://localhost:8000`.
 
-## Publikacja na GitHub Pages
+## Publikacja (GitHub Pages + domena podatki.swiebodzin.pl)
 
-1. Utwórz repozytorium na GitHubie i wypchnij do niego zawartość tego folderu (branch `main`).
-2. W ustawieniach repozytorium: **Settings → Pages → Source** wybierz branch `main` i folder `/ (root)`.
-3. Jeśli używasz własnej domeny (`podatki.swiebodzin.pl`), dodaj plik `CNAME` z jej nazwą oraz skonfiguruj rekord DNS (CNAME/ALIAS) wskazujący na `<użytkownik>.github.io`.
+Strona jest hostowana na GitHub Pages z repozytorium klientki `biurorachnkowe-blip/personalPage` (branch `main`, folder `/ (root)`). Każdy push na `main` publikuje nową wersję w ciągu 1–2 minut. Kopia deweloperska: `commitpanic/podatki.swiebodzin`.
 
-Plik `.nojekyll` jest już dodany, aby GitHub Pages nie przetwarzał strony przez Jekylla.
+- Plik `CNAME` zawiera domenę `podatki.swiebodzin.pl`. Nie usuwać, bo GitHub Pages straci domenę.
+- Plik `.nojekyll` wyłącza przetwarzanie przez Jekylla.
+- Domena i poczta `beata@podatki.swiebodzin.pl` zostają w home.pl (serwer `46.242.253.21`). Na GitHub przechodzi tylko WWW.
+
+### Rekordy DNS w panelu home.pl (strefa podatki.swiebodzin.pl)
+
+Stan sprzed zmiany (2026-10-18):
+
+```
+podatki.swiebodzin.pl      A      46.242.253.21           (serwer home.pl: WWW + poczta)
+podatki.swiebodzin.pl      MX     podatki.swiebodzin.pl
+podatki.swiebodzin.pl      TXT    "v=spf1 a mx ~all"
+podatki.swiebodzin.pl      TXT    "google-site-verification=..."
+www.podatki.swiebodzin.pl  CNAME  podatki.swiebodzin.pl
+```
+
+MX wskazuje na samą domenę, więc poczta korzysta z rekordu A. Przed przepięciem WWW pocztę trzeba przenieść na osobną nazwę. Inaczej po zmianie A poczta trafiałaby na serwery GitHub i przestałaby działać.
+
+**Krok 1. Poczta (najpierw, potem odczekać co najmniej 1 h, TTL 3600):**
+
+| Nazwa                        | Typ | Wartość                         | Akcja   |
+|------------------------------|-----|---------------------------------|---------|
+| `mail.podatki.swiebodzin.pl` | A   | `46.242.253.21`                 | dodać   |
+| `podatki.swiebodzin.pl`      | MX  | `10 mail.podatki.swiebodzin.pl` | zmienić |
+| `podatki.swiebodzin.pl`      | TXT | `v=spf1 mx ~all`                | zmienić (zamiast `v=spf1 a mx ~all`) |
+
+Jeśli w programie pocztowym klientki jako serwer IMAP/SMTP wpisane jest `podatki.swiebodzin.pl`, trzeba je zmienić na adres serwera z panelu home.pl (np. `serwerXXXXXX.home.pl`) albo na `mail.podatki.swiebodzin.pl`.
+
+**Krok 2. WWW na GitHub Pages:**
+
+Domena jest przypisana do serwera WWW w home.pl (stary WordPress). Wtedy rekordy A i `www` są zarządzane przez to przypisanie i nie da się ich edytować w konfiguracji domeny. Zmienia się je w **Usługi WWW → [serwer] → Przypisane domeny → edycja domeny** albo po odpięciu domeny od serwera. Przed odpięciem upewnić się w home.pl, że skrzynka `beata@podatki.swiebodzin.pl` zostaje (zob. krok 1).
+
+home.pl pozwala na **jeden** rekord A dla domeny. GitHub Pages działa z jednym adresem, cztery to tylko redundancja.
+
+| Nazwa                       | Typ   | Wartość                         | Akcja   |
+|-----------------------------|-------|---------------------------------|---------|
+| `podatki.swiebodzin.pl`     | A     | `185.199.108.153`               | zmienić (zamiast `46.242.253.21`) |
+| `podatki.swiebodzin.pl`     | AAAA  | `2606:50c0:8000::153`           | dodać, jeśli panel pozwala; nie może zostać AAAA na home.pl |
+| `www.podatki.swiebodzin.pl` | CNAME | `biurorachnkowe-blip.github.io` | zmienić |
+
+Dla samej nazwy `podatki.swiebodzin.pl` nie używamy CNAME, bo kolidowałby z MX/TXT. Rekordu `google-site-verification` nie ruszamy.
+
+Plik `CNAME` wypychamy do repozytorium dopiero po kroku 2. Wcześniej adres github.io przekierowywałby na starą stronę w home.pl.
+
+### Konfiguracja w repozytorium (robi właścicielka repo)
+
+3. **Settings → Pages → Custom domain**: `podatki.swiebodzin.pl` (wypełni się samo z pliku `CNAME`). Po rozpropagowaniu DNS zaznaczyć **Enforce HTTPS**. Certyfikat Let's Encrypt wystawia GitHub, zwykle w ciągu kilkunastu minut do kilku godzin.
+4. Zalecane: weryfikacja domeny na koncie GitHub (**Settings konta → Pages → Add a domain**). GitHub poda rekord TXT `_github-pages-challenge-biurorachnkowe-blip.podatki.swiebodzin.pl` do dodania w home.pl. Chroni to przed przejęciem domeny przez cudze repozytorium.
 
 ## Formularz kontaktowy
 
